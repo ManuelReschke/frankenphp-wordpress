@@ -1,0 +1,65 @@
+services:
+  frankenphp:
+    build: .
+    image: custom-frankenphp:8.4
+    container_name: frankenphp
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8080:443"
+    volumes:
+      - wp_data:/var/www/html
+    environment:
+      SERVER_NAME: ${DOMAIN:-localhost}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/index.php"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  db:
+    image: mariadb:11.8
+    container_name: mariadb
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-franken}
+      MYSQL_USER: ${MYSQL_USER:-frankenuser}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-frankenpass}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - db_data:/var/lib/mysql
+
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PMA_HOST: db
+      PMA_USER: ${MYSQL_USER:-frankenuser}
+      PMA_PASSWORD: ${MYSQL_PASSWORD:-frankenpass}
+    ports:
+      - "8081:80"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  wp_data:
+  db_data:

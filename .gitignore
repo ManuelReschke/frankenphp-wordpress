@@ -1,0 +1,9 @@
+# Local environment artifacts
+.env
+!.env.example
+
+# Docker volumes
+/db_data/
+
+# Downloaded WordPress source (reproducible via make install-wp)
+/wordpress/
