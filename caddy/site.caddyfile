@@ -1,0 +1,6 @@
+{$DOMAIN} {
+    root * /app/public     # WordPress-Root im Container
+    encode zstd br gzip
+    php_server             # FrankenPHP-Shortcut
+    file_server
+}

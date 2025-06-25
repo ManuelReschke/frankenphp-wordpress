@@ -6,9 +6,11 @@ COMPOSE=docker compose -f docker-compose.yml
 
 up:                ## Build (if needed) and start the stack in detached mode
 	$(COMPOSE) up -d
+	@$(MAKE) fix-perms
 
 start:             ## Start existing containers
 	$(COMPOSE) start
+	@$(MAKE) fix-perms
 
 stop:              ## Stop running containers without removing them
 	$(COMPOSE) stop
@@ -18,6 +20,7 @@ down:              ## Stop and remove containers, but keep volumes/images
 
 restart:           ## Restart containers
 	$(COMPOSE) restart
+	@$(MAKE) fix-perms
 
 logs:              ## Follow container logs
 	$(COMPOSE) logs -f
@@ -30,12 +33,21 @@ clean:             ## Remove containers, images, volumes and orphans – full re
 
 install-wp:        ## Download and extract latest WordPress into ./wordpress
 	@echo "Downloading WordPress ..."
-	@curl -L -o /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz
+	@curl -L -o /tmp/wordpress.zip https://de.wordpress.org/latest-de_DE.zip
 	@rm -rf wordpress
-	@mkdir -p wordpress
-	@tar --strip-components=1 -xzf /tmp/wordpress.tar.gz -C wordpress
-	@rm /tmp/wordpress.tar.gz
+	@unzip -q /tmp/wordpress.zip
+	@rm /tmp/wordpress.zip
 	@echo "WordPress installed in ./wordpress"
+
+fix-perms:         ## Fix WordPress file permissions (www-data)
+	@echo "Fixing WordPress file permissions ..."
+	@chown -R 33:33 wordpress || true
+	@echo "Permissions updated."
+
+set-fs-direct:    ## Inject FS_METHOD 'direct' into wp-config.php (inside container)
+	@echo "Setting FS_METHOD=direct in wp-config.php (container) ..."
+		@$(COMPOSE) exec -T frankenphp bash -c "grep -q 'FS_METHOD.*direct' /app/public/wp-config.php || sed -i \"/\\* That's all, stop editing!/i define( 'FS_METHOD', 'direct' );\" /app/public/wp-config.php"
+	@echo "FS_METHOD set."
 
 help:              ## Display this help
 	@grep -E '^[a-zA-Z_-]+:\s+##' Makefile | awk 'BEGIN {FS = ":"}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$3}'

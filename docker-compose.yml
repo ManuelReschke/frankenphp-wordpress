@@ -7,9 +7,15 @@ services:
     env_file:
       - .env
     ports:
-      - "8080:443"
+      - "8080:80"    # HTTP
+      - "8443:443"   # optional HTTPS
     volumes:
-      - wp_data:/var/www/html
+      - ./wordpress:/app/public
+      #- ./caddy/site.caddyfile:/etc/caddy/Caddyfile.d/site.caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    # comment the following line in production, it allows to have nice human-readable logs in dev
+    #tty: true
     environment:
       SERVER_NAME: ${DOMAIN:-localhost}
     depends_on:
@@ -52,8 +58,9 @@ services:
       - .env
     environment:
       PMA_HOST: db
-      PMA_USER: ${MYSQL_USER:-frankenuser}
-      PMA_PASSWORD: ${MYSQL_PASSWORD:-frankenpass}
+# use it if you want to skip the login screen in phpmyadmin
+#      PMA_USER: ${MYSQL_USER:-frankenuser}
+#      PMA_PASSWORD: ${MYSQL_PASSWORD:-frankenpass}
     ports:
       - "8081:80"
     depends_on:
@@ -61,5 +68,6 @@ services:
         condition: service_healthy
 
 volumes:
-  wp_data:
   db_data:
+  caddy_data:
+  caddy_config:

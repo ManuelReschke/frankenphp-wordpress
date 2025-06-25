@@ -53,6 +53,8 @@ Wenige Sekunden später erreichst du:
 | `make build`          | Images neu bauen |
 | `make clean`          | Voller Reset: Container, Images, Volumes & Orphans löschen |
 | `make install-wp`     | Aktuelle WordPress-Quelle laden & nach `./wordpress` entpacken |
+| `make fix-perms`      | Setzt Besitzer von `./wordpress` auf UID 33 (www-data) |
+| `make set-fs-direct`  | Fügt `define('FS_METHOD','direct')` in `wp-config.php` ein |
 | `make help`           | Übersicht aller Targets |
 
 ---
@@ -64,6 +66,40 @@ Wenige Sekunden später erreichst du:
 | **frankenphp** | PHP 8.4 Runtime + Webserver (Basis: `dunglas/frankenphp:php8.4`) | 8080 → 80 |
 | **db**         | MariaDB 11 mit persistenter Volume-Ablage (`db_data`) | 3306 |
 | **phpmyadmin** | GUI-Verwaltung für MariaDB | 8081 → 80 |
+
+---
+
+## 🌐 Eigene Domain & Caddyfile
+
+1. **Site-Datei anlegen**  
+   `caddy/site.caddyfile` (Endung `.caddyfile` ist wichtig)
+   ```caddyfile
+   {$DOMAIN} {
+       root * /app/public    # WordPress Root im Container
+       encode zstd br gzip
+       php_server            # FrankenPHP Shortcut
+       file_server
+   }
+   ```
+   `{$DOMAIN}` wird automatisch durch den Wert aus `.env` ersetzt.
+
+2. **Compose-Mount aktivieren**  
+   In `docker-compose.yml` beim Service `frankenphp`:
+   ```yaml
+   volumes:
+     - ./wordpress:/app/public
+     - ./caddy/site.caddyfile:/etc/caddy/Caddyfile.d/site.caddyfile:ro
+     - caddy_data:/data
+     - caddy_config:/config
+   ```
+
+3. **Stack neu bauen & starten**
+   ```bash
+   make build
+   make up
+   ```
+
+Caddy holt sich bei öffentlicher Domain automatisch TLS-Zertifikate. Für lokale Hosts bleibt es bei HTTP.
 
 ---
 
