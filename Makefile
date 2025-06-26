@@ -2,7 +2,15 @@
 
 COMPOSE=docker compose -f docker-compose.yml
 
-.PHONY: up start stop down restart logs build clean install-wp help
+.PHONY: init-dev init-prod up start stop down restart logs build clean install-wp help
+
+init-dev:          ## Copy docker-compose.dev.yml to docker-compose.yml
+	cp docker-compose.dev.yml docker-compose.yml
+	@echo "docker-compose.yml initialized for development."
+
+init-prod:         ## Copy docker-compose.prod.yml to docker-compose.yml
+	cp docker-compose.prod.yml docker-compose.yml
+	@echo "docker-compose.yml initialized for production."
 
 up:                ## Build (if needed) and start the stack in detached mode
 	$(COMPOSE) up -d

@@ -26,7 +26,12 @@ cmp .env.example .env  # Werte im Editor anpassen
 # 3) WordPress herunterladen (legt ./wordpress an)
 make install-wp
 
-# 4) Stack starten (FrankenPHP, MariaDB, phpMyAdmin)
+# 4) docker-compose für die gewünschte Umgebung generieren
+make init-dev   # Development
+#   oder
+make init-prod  # Production
+
+# 5) Stack starten (FrankenPHP, MariaDB, phpMyAdmin)
 make up
 ```
 
@@ -44,6 +49,8 @@ Wenige Sekunden später erreichst du:
 
 | Befehl                | Beschreibung |
 |-----------------------|--------------|
+| `make init-dev`       | Kopiert `docker-compose.dev.yml` → `docker-compose.yml` |
+| `make init-prod`      | Kopiert `docker-compose.prod.yml` → `docker-compose.yml` |
 | `make up`             | Container bauen (falls nötig) & im Hintergrund starten |
 | `make start`          | Gestoppte Container starten |
 | `make stop`           | Container anhalten, **ohne** sie zu löschen |
