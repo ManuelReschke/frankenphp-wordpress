@@ -70,7 +70,7 @@ Wenige Sekunden später erreichst du:
 
 | Service      | Zweck | Port |
 |--------------|-------|------|
-| **frankenphp** | PHP 8.4 Runtime + Webserver (Basis: `dunglas/frankenphp:php8.4`) | 8080 → 80 |
+| **frankenphp** | PHP 8.4 Runtime + Webserver (Basis: `dunglas/frankenphp:php8.4`) | Prod: 80 → 80, 443 → 443, Dev: 8080 → 80, 8443 → 443 |
 | **db**         | MariaDB 11 mit persistenter Volume-Ablage (`db_data`) | 3306 |
 | **phpmyadmin** | GUI-Verwaltung für MariaDB | 8081 → 80 |
 
@@ -81,14 +81,14 @@ Wenige Sekunden später erreichst du:
 1. **Site-Datei anlegen**  
    `caddy/site.caddyfile` (Endung `.caddyfile` ist wichtig)
    ```caddyfile
-   {$DOMAIN} {
+   {$SERVER_NAME} {
        root * /app/public    # WordPress Root im Container
        encode zstd br gzip
        php_server            # FrankenPHP Shortcut
        file_server
    }
    ```
-   `{$DOMAIN}` wird automatisch durch den Wert aus `.env` ersetzt.
+   `{$SERVER_NAME}` wird automatisch durch den Wert aus `.env` ersetzt.
 
 2. **Compose-Mount aktivieren**  
    In `docker-compose.yml` beim Service `frankenphp`:
@@ -117,7 +117,7 @@ Alle Variablen werden in `.env` gepflegt und im `docker-compose.yml` genutzt:
 
 | Variable            | Default            | Beschreibung |
 |---------------------|--------------------|--------------|
-| `DOMAIN`            | `localhost`        | Öffentliche Domain/Host deiner WP-Site (FrankenPHP-Variable) |
+| `SERVER_NAME`       | `localhost`        | Öffentliche Domain/Host deiner WP-Site (FrankenPHP-Variable) |
 | `MYSQL_DATABASE`    | `franken`          | Name der Datenbank |
 | `MYSQL_USER`        | `frankenuser`      | DB-User |
 | `MYSQL_PASSWORD`    | `frankenpass`      | DB-Passwort |
