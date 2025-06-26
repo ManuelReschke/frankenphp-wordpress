@@ -10,11 +10,12 @@ services:
       - "443:443"
     volumes:
       - ./wordpress:/app/public
-      #- ./caddy/site.caddyfile:/etc/caddy/Caddyfile.d/site.caddyfile:ro
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy/wordpress.caddyfile:/etc/caddy/Caddyfile.d/wordpress.caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     environment:
-      SERVER_NAME: ${DOMAIN:-localhost}
+      SERVER_NAME: ${SERVER_NAME:-localhost}
     depends_on:
       db:
         condition: service_healthy

@@ -1,0 +1,33 @@
+{$SERVER_NAME} {
+    # Root directory of your WordPress installation
+    root * /app/public
+
+    # Modern compression codecs
+    encode zstd br gzip
+
+    # ----------------------------------------------------------------
+    # Static asset caching (CSS, JS, images, fonts, etc.)
+    # ----------------------------------------------------------------
+    @assets {
+        path_regexp assets ^/(?:wp-content|wp-includes|assets|uploads)/.*\.(?:css|js|mjs|gif|png|jpe?g|webp|avif|svg|ico|woff2?)$
+    }
+    header @assets Cache-Control "public, max-age=172800, immutable"
+
+    # ----------------------------------------------------------------
+    # Security headers
+    # ----------------------------------------------------------------
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), usb=()"
+    }
+
+    # ----------------------------------------------------------------
+    # PHP handling via FrankenPHP shortcut (includes pretty-permalink fallback)
+    # ----------------------------------------------------------------
+    php_server
+
+    # Static file serving (handled last)
+    file_server
+}

@@ -94,10 +94,11 @@ Wenige Sekunden später erreichst du:
    In `docker-compose.yml` beim Service `frankenphp`:
    ```yaml
    volumes:
-     - ./wordpress:/app/public
-     - ./caddy/site.caddyfile:/etc/caddy/Caddyfile.d/site.caddyfile:ro
-     - caddy_data:/data
-     - caddy_config:/config
+      - ./wordpress:/app/public
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy/wordpress.caddyfile:/etc/caddy/Caddyfile.d/wordpress.caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
    ```
 
 3. **Stack neu bauen & starten**

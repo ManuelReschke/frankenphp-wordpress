@@ -49,7 +49,7 @@ install-wp:        ## Download and extract latest WordPress into ./wordpress
 
 fix-perms:         ## Fix WordPress file permissions (www-data)
 	@echo "Fixing WordPress file permissions ..."
-	@chown -R 33:33 wordpress || true
+	@sudo chown -R 33:33 wordpress || true
 	@echo "Permissions updated."
 
 set-fs-direct:    ## Inject FS_METHOD 'direct' into wp-config.php (inside container)
