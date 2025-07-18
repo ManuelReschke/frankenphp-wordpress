@@ -2,6 +2,11 @@
     # Root directory of your WordPress installation
     root * /app/public
 
+    # Basic request throttling via timeouts
+    request_body {
+        max_size 10MB
+    }
+
     # Modern compression codecs
     encode zstd br gzip
 

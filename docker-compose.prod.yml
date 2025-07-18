@@ -7,17 +7,22 @@ services:
     env_file:
       - .env
     ports:
-      - "443:443"
+      - "443:443" #only HTTPS
     volumes:
       - ./wordpress:/app/public
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./caddy/wordpress.caddyfile:/etc/caddy/Caddyfile.d/wordpress.caddyfile:ro
+      - ./caddy/opcache.ini:/usr/local/etc/php/conf.d/docker-php-ext-opcache.ini:ro
       - caddy_data:/data
       - caddy_config:/config
     environment:
       SERVER_NAME: ${SERVER_NAME:-localhost}
+      REDIS_HOST: ${REDIS_HOST:-dragonfly}
+      REDIS_PORT: ${REDIS_PORT:-6379}
     depends_on:
       db:
+        condition: service_healthy
+      dragonfly:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/index.php"]
@@ -38,6 +43,7 @@ services:
       MYSQL_USER: ${MYSQL_USER:-frankenuser}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-frankenpass}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+    command: --max_connections=200 --innodb_buffer_pool_size=256M
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       start_period: 10s
@@ -62,7 +68,25 @@ services:
       db:
         condition: service_healthy
 
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
+    container_name: dragonfly
+    restart: unless-stopped
+    env_file:
+      - .env
+    #ports: # we dont need the ports public
+    #  - "6379:6379"
+    command: --maxmemory=${DRAGONFLY_MAX_MEMORY:-512mb} --requirepass="" --proactor_threads=1
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - dragonfly_data:/data
+
 volumes:
   db_data:
+  dragonfly_data:
   caddy_data:
   caddy_config:

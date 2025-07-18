@@ -1,7 +1,7 @@
 # FrankenPHP + WordPress 🚀
 
 Willkommen in diesem **FrankenPHP-WordPress-Boilerplate**!  
-Mit nur wenigen Befehlen bekommst du eine lauffähige WordPress-Instanz auf Basis von [FrankenPHP](https://frankenphp.dev/), MariaDB und phpMyAdmin – komplett in Docker 🛳️.
+Mit nur wenigen Befehlen bekommst du eine lauffähige WordPress-Instanz auf Basis von [FrankenPHP](https://frankenphp.dev/), MariaDB, Dragonfly (Redis-kompatibel) und phpMyAdmin – komplett in Docker 🛳️.
 
 ---
 
@@ -31,7 +31,7 @@ make init-dev   # Development
 #   oder
 make init-prod  # Production
 
-# 5) Stack starten (FrankenPHP, MariaDB, phpMyAdmin)
+# 5) Stack starten (FrankenPHP, MariaDB, Dragonfly, phpMyAdmin)
 make up
 ```
 
@@ -72,6 +72,7 @@ Wenige Sekunden später erreichst du:
 |--------------|-------|------|
 | **frankenphp** | PHP 8.4 Runtime + Webserver (Basis: `dunglas/frankenphp:php8.4`) | Prod: 80 → 80, 443 → 443, Dev: 8080 → 80, 8443 → 443 |
 | **db**         | MariaDB 11 mit persistenter Volume-Ablage (`db_data`) | 3306 |
+| **dragonfly**  | Dragonfly Redis-kompatibel für WordPress Object Caching | Dev: 6379 → 6379 |
 | **phpmyadmin** | GUI-Verwaltung für MariaDB | 8081 → 80 |
 
 ---
@@ -97,6 +98,7 @@ Wenige Sekunden später erreichst du:
       - ./wordpress:/app/public
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./caddy/wordpress.caddyfile:/etc/caddy/Caddyfile.d/wordpress.caddyfile:ro
+      - ./caddy/opcache.ini:/usr/local/etc/php/conf.d/docker-php-ext-opcache.ini:ro
       - caddy_data:/data
       - caddy_config:/config
    ```
@@ -115,15 +117,37 @@ Caddy holt sich bei öffentlicher Domain automatisch TLS-Zertifikate. Für lokal
 
 Alle Variablen werden in `.env` gepflegt und im `docker-compose.yml` genutzt:
 
-| Variable            | Default            | Beschreibung |
-|---------------------|--------------------|--------------|
+| Variable            | Default            | Beschreibung                                                 |
+|---------------------|--------------------|--------------------------------------------------------------|
 | `SERVER_NAME`       | `localhost`        | Öffentliche Domain/Host deiner WP-Site (FrankenPHP-Variable) |
-| `MYSQL_DATABASE`    | `franken`          | Name der Datenbank |
-| `MYSQL_USER`        | `frankenuser`      | DB-User |
-| `MYSQL_PASSWORD`    | `frankenpass`      | DB-Passwort |
-| `MYSQL_ROOT_PASSWORD` | `rootpass`       | Root-Passwort (nur intern) |
+| `MYSQL_DATABASE`    | `franken`          | Name der Datenbank                                           |
+| `MYSQL_USER`        | `frankenuser`      | DB-User                                                      |
+| `MYSQL_PASSWORD`    | `frankenpass`      | DB-Passwort                                                  |
+| `MYSQL_ROOT_PASSWORD` | `rootpass`       | Root-Passwort (nur intern)                                   |
+| `REDIS_HOST`        | `dragonfly`        | Redis-Server Hostname                                        |
+| `REDIS_PORT`        | `6379`             | Redis-Server Port                                            |
+| `DRAGONFLY_MAX_MEMORY` | `512mb`             | Redis/Dragonfly max memory                                   |
 
 > 🔒 **Sicherheit:** `.env` ist in `.gitignore` gelistet. Teile echte Zugangsdaten nie in öffentlichen Repos!
+
+---
+
+## 🚀 Redis Object Caching
+
+Das Setup inkludiert einen **Dragonfly** Container, der Redis-kompatibel ist und perfekt für WordPress Object Caching funktioniert.
+
+### Empfohlene WordPress-Plugins:
+- **[Redis Object Cache](https://wordpress.org/plugins/redis-cache/)** von Till Krüss (empfohlen)
+- **[W3 Total Cache](https://wordpress.org/plugins/w3-total-cache/)** mit Redis-Backend
+- **[WP Redis](https://wordpress.org/plugins/wp-redis/)**
+
+### Installation:
+1. WordPress-Plugin über Admin-Backend installieren
+2. Plugin aktivieren
+3. Bei Redis Object Cache: auf "Enable Object Cache" klicken
+4. Die Verbindung zu `dragonfly:6379` wird automatisch erkannt
+
+> 💡 **Tipp:** Dragonfly ist bis zu 25x schneller als Redis bei gleichem Speicherverbrauch!
 
 ---
 

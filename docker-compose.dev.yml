@@ -13,14 +13,19 @@ services:
       - ./wordpress:/app/public
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./caddy/wordpress.caddyfile:/etc/caddy/Caddyfile.d/wordpress.caddyfile:ro
+      - ./caddy/opcache.ini:/usr/local/etc/php/conf.d/docker-php-ext-opcache.ini:ro
       - caddy_data:/data
       - caddy_config:/config
     # comment the following line in production, it allows to have nice human-readable logs in dev
     tty: true
     environment:
       SERVER_NAME: ${SERVER_NAME:-localhost}
+      REDIS_HOST: ${REDIS_HOST:-dragonfly}
+      REDIS_PORT: ${REDIS_PORT:-6379}
     depends_on:
       db:
+        condition: service_healthy
+      dragonfly:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/index.php"]
@@ -68,7 +73,25 @@ services:
       db:
         condition: service_healthy
 
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
+    container_name: dragonfly
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: --maxmemory=${DRAGONFLY_MAX_MEMORY:-512mb} --requirepass="" --proactor_threads=1
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - dragonfly_data:/data
+
 volumes:
   db_data:
+  dragonfly_data:
   caddy_data:
   caddy_config:

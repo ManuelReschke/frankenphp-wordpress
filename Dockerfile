@@ -23,7 +23,8 @@ RUN install-php-extensions \
     intl \
     mysqli \
     zip \
-    opcache
+    opcache \
+    redis
 
 # Copy entrypoint script
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
