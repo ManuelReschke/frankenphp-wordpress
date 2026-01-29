@@ -31,7 +31,10 @@ make init-dev   # Development
 #   oder
 make init-prod  # Production
 
-# 5) Stack starten (FrankenPHP, MariaDB, Dragonfly, phpMyAdmin)
+# 5) Stack builden
+make build
+
+# 6) Stack starten (FrankenPHP, MariaDB, Dragonfly, phpMyAdmin)
 make up
 ```
 
@@ -42,6 +45,7 @@ Wenige Sekunden später erreichst du:
   * Anmeldedaten: die Werte aus `.env` (`MYSQL_USER` & `MYSQL_PASSWORD`)
 
 > 💡 Der Standard-Admin-Benutzer von WordPress wird wie gewohnt beim Einrichtungs­assistenten angelegt.
+> 💡 Beim WordPress-Installationsassistenten ist der **Datenbank-Host** `db` (nicht `localhost`).
 
 ---
 
@@ -61,6 +65,7 @@ Wenige Sekunden später erreichst du:
 | `make clean`          | Voller Reset: Container, Images, Volumes & Orphans löschen |
 | `make install-wp`     | Aktuelle WordPress-Quelle laden & nach `./wordpress` entpacken |
 | `make fix-perms`      | Setzt Besitzer von `./wordpress` auf UID 33 (www-data) |
+| `make fix-perms-host` | Setzt HOST_UID/GID in `.env` und übernimmt die Rechte auf deinen User |
 | `make set-fs-direct`  | Fügt `define('FS_METHOD','direct')` in `wp-config.php` ein |
 | `make help`           | Übersicht aller Targets |
 
@@ -127,6 +132,8 @@ Alle Variablen werden in `.env` gepflegt und im `docker-compose.yml` genutzt:
 | `REDIS_HOST`        | `dragonfly`        | Redis-Server Hostname                                        |
 | `REDIS_PORT`        | `6379`             | Redis-Server Port                                            |
 | `DRAGONFLY_MAX_MEMORY` | `512mb`             | Redis/Dragonfly max memory                                   |
+| `HOST_UID`          | `1000`             | UID für Dateirechte im WordPress-Volume (Dev)                |
+| `HOST_GID`          | `1000`             | GID für Dateirechte im WordPress-Volume (Dev)                |
 
 > 🔒 **Sicherheit:** `.env` ist in `.gitignore` gelistet. Teile echte Zugangsdaten nie in öffentlichen Repos!
 
