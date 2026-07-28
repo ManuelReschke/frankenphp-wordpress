@@ -55,19 +55,33 @@ Wenige Sekunden später erreichst du:
 |-----------------------|--------------|
 | `make init-dev`       | Kopiert `docker-compose.dev.yml` → `docker-compose.yml` |
 | `make init-prod`      | Kopiert `docker-compose.prod.yml` → `docker-compose.yml` |
-| `make up`             | Container bauen (falls nötig) & im Hintergrund starten |
-| `make start`          | Gestoppte Container starten |
+| `make up`             | Container bauen (falls nötig) & im Hintergrund starten; gibt danach die Service-URLs aus |
+| `make start`          | Gestoppte Container starten; gibt danach die Service-URLs aus |
+| `make urls`           | Zeigt URLs/Endpunkte der laufenden Dienste |
 | `make stop`           | Container anhalten, **ohne** sie zu löschen |
 | `make down`           | Container anhalten & löschen (Volumes bleiben) |
 | `make restart`        | Container neu starten |
 | `make logs`           | Live-Logs aller Container folgen |
 | `make build`          | Images neu bauen |
 | `make clean`          | Voller Reset: Container, Images, Volumes & Orphans löschen |
-| `make install-wp`     | Aktuelle WordPress-Quelle laden & nach `./wordpress` entpacken |
-| `make fix-perms`      | Setzt Besitzer von `./wordpress` auf UID 33 (www-data) |
-| `make fix-perms-host` | Setzt HOST_UID/GID in `.env` und übernimmt die Rechte auf deinen User |
+| `make install-wp`     | Aktuelle WordPress-Quelle laden & nach `./wordpress` entpacken (Owner = dein User) |
+| `make fix-perms`      | Recovery: setzt Owner von `./wordpress` auf `HOST_UID`/`HOST_GID` |
+| `make fix-perms-host` | Schreibt aktuellen User nach `.env` (`HOST_*`) und ruft `fix-perms` auf |
 | `make set-fs-direct`  | Fügt `define('FS_METHOD','direct')` in `wp-config.php` ein |
 | `make help`           | Übersicht aller Targets |
+
+### Dateirechte (Dev)
+
+FrankenPHP/PHP läuft im Container als **`HOST_UID`/`HOST_GID`** (in `.env`, ideal = `id -u` / `id -g`).  
+Damit gehören Uploads, Plugin-Installationen und Host-Edits demselben User – **kein** rekursives `chown` bei jedem `make up`.
+
+Nach einem Wechsel vom alten Setup einmalig:
+
+```bash
+make fix-perms-host   # HOST_* in .env + chown
+make build            # neues Image (gosu + setcap)
+make up
+```
 
 ---
 
@@ -75,8 +89,8 @@ Wenige Sekunden später erreichst du:
 
 | Service      | Zweck | Port |
 |--------------|-------|------|
-| **frankenphp** | PHP 8.4 Runtime + Webserver (Basis: `dunglas/frankenphp:php8.4`) | Prod: 80 → 80, 443 → 443, Dev: 8080 → 80, 8443 → 443 |
-| **db**         | MariaDB 11 mit persistenter Volume-Ablage (`db_data`) | 3306 |
+| **frankenphp** | PHP 8.5 Runtime + Webserver (Basis: `dunglas/frankenphp:php8.5`) | Prod: 80 → 80, 443 → 443, Dev: 8080 → 80, 8443 → 443 |
+| **db**         | MariaDB 12 mit persistenter Volume-Ablage (`db_data`) | 3306 |
 | **dragonfly**  | Dragonfly Redis-kompatibel für WordPress Object Caching | Dev: 6379 → 6379 |
 | **phpmyadmin** | GUI-Verwaltung für MariaDB | 8081 → 80 |
 
@@ -124,7 +138,7 @@ Alle Variablen werden in `.env` gepflegt und im `docker-compose.yml` genutzt:
 
 | Variable            | Default            | Beschreibung                                                 |
 |---------------------|--------------------|--------------------------------------------------------------|
-| `SERVER_NAME`       | `localhost`        | Öffentliche Domain/Host deiner WP-Site (FrankenPHP-Variable) |
+| `SERVER_NAME`       | `http://localhost` | Site-Adresse für Caddy. Lokal: `http://localhost` (HTTP). Prod: Domain wie `example.com` (Auto-TLS) |
 | `MYSQL_DATABASE`    | `franken`          | Name der Datenbank                                           |
 | `MYSQL_USER`        | `frankenuser`      | DB-User                                                      |
 | `MYSQL_PASSWORD`    | `frankenpass`      | DB-Passwort                                                  |
@@ -132,8 +146,8 @@ Alle Variablen werden in `.env` gepflegt und im `docker-compose.yml` genutzt:
 | `REDIS_HOST`        | `dragonfly`        | Redis-Server Hostname                                        |
 | `REDIS_PORT`        | `6379`             | Redis-Server Port                                            |
 | `DRAGONFLY_MAX_MEMORY` | `512mb`             | Redis/Dragonfly max memory                                   |
-| `HOST_UID`          | `1000`             | UID für Dateirechte im WordPress-Volume (Dev)                |
-| `HOST_GID`          | `1000`             | GID für Dateirechte im WordPress-Volume (Dev)                |
+| `HOST_UID`          | `1000`             | UID, unter der FrankenPHP/PHP läuft (an Host anpassen: `id -u`) |
+| `HOST_GID`          | `1000`             | GID analog (`id -g`)                                         |
 
 > 🔒 **Sicherheit:** `.env` ist in `.gitignore` gelistet. Teile echte Zugangsdaten nie in öffentlichen Repos!
 

@@ -1,7 +1,7 @@
 services:
   frankenphp:
     build: .
-    image: custom-frankenphp:8.4
+    image: custom-frankenphp:8.5
     container_name: frankenphp
     restart: unless-stopped
     env_file:
@@ -19,6 +19,8 @@ services:
       SERVER_NAME: ${SERVER_NAME:-localhost}
       REDIS_HOST: ${REDIS_HOST:-dragonfly}
       REDIS_PORT: ${REDIS_PORT:-6379}
+      HOST_UID: ${HOST_UID:-1000}
+      HOST_GID: ${HOST_GID:-1000}
     depends_on:
       db:
         condition: service_healthy
@@ -31,7 +33,7 @@ services:
       retries: 3
 
   db:
-    image: mariadb:11.8
+    image: mariadb:12
     container_name: mariadb
     restart: unless-stopped
     env_file:
