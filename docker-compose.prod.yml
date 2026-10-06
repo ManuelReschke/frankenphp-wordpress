@@ -10,6 +10,7 @@ services:
       - "443:443" #only HTTPS
     volumes:
       - ./wordpress:/app/public
+      - ../wp-plugin-traffictradexy:/app/public/wp-content/plugins/traffictradexy
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./caddy/wordpress.caddyfile:/etc/caddy/Caddyfile.d/wordpress.caddyfile:ro
       - ./caddy/opcache.ini:/usr/local/etc/php/conf.d/docker-php-ext-opcache.ini:ro

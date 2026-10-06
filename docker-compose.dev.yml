@@ -11,8 +11,9 @@ services:
       - "8443:443"   # optional HTTPS
     volumes:
       - ./wordpress:/app/public
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./caddy/wordpress.caddyfile:/etc/caddy/Caddyfile.d/wordpress.caddyfile:ro
+      - ../wp-plugin-traffictradexy:/app/public/wp-content/plugins/traffictradexy
+      - ./caddy/Caddyfile.dev:/etc/caddy/Caddyfile:ro
+      - ./caddy/wordpress.dev.caddyfile:/etc/caddy/Caddyfile.d/wordpress.caddyfile:ro
       - ./caddy/opcache.ini:/usr/local/etc/php/conf.d/docker-php-ext-opcache.ini:ro
       - caddy_data:/data
       - caddy_config:/config

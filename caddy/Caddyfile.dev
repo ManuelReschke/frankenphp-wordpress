@@ -1,0 +1,17 @@
+# Local HTTP config. Production keeps caddy/Caddyfile (Cloudflare DNS-01).
+# localhost cannot complete a public ACME challenge.
+
+{
+	skip_install_trust
+	auto_https off
+
+	{$CADDY_GLOBAL_OPTIONS}
+
+	frankenphp {
+		{$FRANKENPHP_CONFIG}
+	}
+}
+
+{$CADDY_EXTRA_CONFIG}
+
+import Caddyfile.d/*.caddyfile

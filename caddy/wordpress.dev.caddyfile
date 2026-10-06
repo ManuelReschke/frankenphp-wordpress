@@ -1,0 +1,24 @@
+:80 {
+    root * /app/public
+
+    request_body {
+        max_size 10MB
+    }
+
+    encode zstd br gzip
+
+    @assets {
+        path_regexp assets ^/(?:wp-content|wp-includes|assets|uploads)/.*\.(?:css|js|mjs|gif|png|jpe?g|webp|avif|svg|ico|woff2?)$
+    }
+    header @assets Cache-Control "public, max-age=172800, immutable"
+
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), usb=()"
+    }
+
+    php_server
+    file_server
+}
