@@ -6,6 +6,10 @@
 {
 	skip_install_trust
 
+	# Use Cloudflare DNS-01 for ACME (requires caddy-dns/cloudflare plugin)
+	# Reads token from environment variable CLOUDFLARE_API_TOKEN
+	acme_dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+
 	{$CADDY_GLOBAL_OPTIONS}
 
 	frankenphp {

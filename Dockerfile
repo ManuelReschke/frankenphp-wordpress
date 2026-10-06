@@ -1,5 +1,31 @@
-# FrankenPHP + PHP extensions only
-FROM dunglas/frankenphp:php8.5
+###############################
+# Build FrankenPHP with Caddy plugins
+###############################
+FROM dunglas/frankenphp:1.13.0-builder-php8.5 AS caddy-builder
+
+# Copy xcaddy from the official Caddy builder image
+COPY --from=caddy:builder /usr/bin/xcaddy /usr/bin/xcaddy
+
+# Build FrankenPHP with the Cloudflare DNS provider.
+# Builder and runtime stay on the same PHP 8.5 tag so the binary matches libphp.
+RUN CGO_ENABLED=1 \
+    XCADDY_SETCAP=1 \
+    XCADDY_GO_BUILD_FLAGS="-ldflags='-w -s' -tags=nobadger,nomysql,nopgx" \
+    CGO_CFLAGS="$(php-config --includes)" \
+    CGO_LDFLAGS="$(php-config --ldflags) $(php-config --libs)" \
+    xcaddy build \
+      --output /usr/local/bin/frankenphp \
+      --with github.com/dunglas/frankenphp/caddy \
+      --with github.com/caddy-dns/cloudflare \
+      --with github.com/dunglas/caddy-cbrotli
+
+###############################
+# Runtime image with PHP + FrankenPHP
+###############################
+FROM dunglas/frankenphp:1.13.0-php8.5
+
+# Replace the FrankenPHP binary with the plugin-enabled build
+COPY --from=caddy-builder /usr/local/bin/frankenphp /usr/local/bin/frankenphp
 
 # System libs for GD, gosu (drop privileges), libcap2-bin (setcap for :80/:443)
 RUN apt-get update && apt-get install -y --no-install-recommends \

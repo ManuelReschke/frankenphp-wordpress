@@ -10,6 +10,12 @@
     # Modern compression codecs
     encode zstd br gzip
 
+    # Issue/renew certificates via Cloudflare DNS-01 (requires plugin build)
+    # Ensure CLOUDFLARE_API_TOKEN is set in your environment/.env
+    tls {
+        dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+    }
+
     # ----------------------------------------------------------------
     # Static asset caching (CSS, JS, images, fonts, etc.)
     # ----------------------------------------------------------------
