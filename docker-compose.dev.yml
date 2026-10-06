@@ -12,6 +12,7 @@ services:
     volumes:
       - ./wordpress:/app/public
       - ../wp-plugin-traffictradexy:/app/public/wp-content/plugins/traffictradexy
+      - ../wp-plugin-post-autoclean:/app/public/wp-content/plugins/post-autoclean
       - ./caddy/Caddyfile.dev:/etc/caddy/Caddyfile:ro
       - ./caddy/wordpress.dev.caddyfile:/etc/caddy/Caddyfile.d/wordpress.caddyfile:ro
       - ./caddy/opcache.ini:/usr/local/etc/php/conf.d/docker-php-ext-opcache.ini:ro

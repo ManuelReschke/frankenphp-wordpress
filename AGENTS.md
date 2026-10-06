@@ -74,5 +74,10 @@ No automated test framework is configured. If you add tests, document how to run
 - `make install-wp` pulls from `de.wordpress.org` (German locale) and leaves files owned by the current user.
 - Production TLS uses Cloudflare DNS-01. Set `CLOUDFLARE_API_TOKEN` in `.env` (Zone:Read, DNS:Edit). Leave it empty for local HTTP.
 
-## TrafficTradeXY
-Dev and prod compose mount the sibling repo `../wp-plugin-traffictradexy` at `wp-content/plugins/traffictradexy`. That checkout is the plugin source. Do not rely on a copy inside `wordpress/`, because `make install-wp` replaces that tree.
+## Sibling plugins
+Dev and prod compose mount sibling checkouts into `wp-content/plugins`:
+
+- `../wp-plugin-traffictradexy` → `traffictradexy`
+- `../wp-plugin-post-autoclean` → `post-autoclean`
+
+Those checkouts are the plugin source. Do not copy them into `wordpress/`, because `make install-wp` replaces that tree. A symlink there also fails: the container resolves it on its own filesystem.
