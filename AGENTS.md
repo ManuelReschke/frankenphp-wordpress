@@ -5,7 +5,7 @@ FrankenPHP + WordPress boilerplate: Docker stack with FrankenPHP (PHP 8.5), Mari
 ## Project Structure
 - `docker-compose.dev.yml`, `docker-compose.prod.yml`: Compose templates. `docker-compose.yml` is generated via `make init-dev` / `make init-prod` and is gitignored.
 - `Dockerfile`, `entrypoint.sh`: Image build and startup. Entrypoint drops to `HOST_UID:HOST_GID`, then runs FrankenPHP (no recursive chown on every start).
-- `caddy/`: Caddy/FrankenPHP config (`Caddyfile`, `*.caddyfile`, `opcache.ini`). Site snippets use the `.caddyfile` suffix.
+- `caddy/`: Caddy/FrankenPHP config. Production uses `Caddyfile` and `wordpress.caddyfile` (Cloudflare DNS-01). Dev compose mounts `Caddyfile.dev` and `wordpress.dev.caddyfile` (plain HTTP on `:80`).
 - `wordpress/`: WordPress source from `make install-wp` (gitignored). Do not commit local WP core changes unless intentional.
 - `.env.example`: Env defaults; copy to `.env` (gitignored) and adjust.
 - `Makefile`: Primary developer workflow entry point.
@@ -14,7 +14,7 @@ FrankenPHP + WordPress boilerplate: Docker stack with FrankenPHP (PHP 8.5), Mari
 ## Stack & Ports (dev defaults)
 | Service | Role | Port |
 |---------|------|------|
-| frankenphp | PHP 8.5 + Caddy (`dunglas/frankenphp:php8.5`) | 8080→80, 8443→443 |
+| frankenphp | PHP 8.5 + Caddy (`1.13.0-php8.5` plus Cloudflare DNS) | 8080→80, 8443→443 |
 | db | MariaDB 12 | 3306 |
 | dragonfly | Redis-compatible object cache | 6379 |
 | phpmyadmin | DB UI | 8081→80 |
@@ -72,3 +72,7 @@ No automated test framework is configured. If you add tests, document how to run
 - `wordpress/` and `docker-compose.yml` are gitignored.
 - Permissions model: FrankenPHP/PHP runs as `HOST_UID`/`HOST_GID` from `.env` (match `id -u` / `id -g`). Bind-mounted `wordpress/` stays host-editable; new files (uploads, plugins) get that ownership. No recursive chown on every start. Recovery: `make fix-perms` or `FORCE_CHOWN=1` once.
 - `make install-wp` pulls from `de.wordpress.org` (German locale) and leaves files owned by the current user.
+- Production TLS uses Cloudflare DNS-01. Set `CLOUDFLARE_API_TOKEN` in `.env` (Zone:Read, DNS:Edit). Leave it empty for local HTTP.
+
+## TrafficTradeXY
+Dev and prod compose mount the sibling repo `../wp-plugin-traffictradexy` at `wp-content/plugins/traffictradexy`. That checkout is the plugin source. Do not rely on a copy inside `wordpress/`, because `make install-wp` replaces that tree.
